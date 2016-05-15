@@ -1,6 +1,7 @@
 <?php
 namespace frontend\controllers;
 
+use common\models\User;
 use Yii;
 use yii\base\InvalidParamException;
 use yii\web\BadRequestHttpException;
@@ -18,6 +19,12 @@ use frontend\models\ContactForm;
  */
 class SiteController extends Controller
 {
+
+    public function actionUser()
+    {
+        return print_r(new User());
+    }
+
     /**
      * @inheritdoc
      */
