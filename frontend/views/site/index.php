@@ -1,53 +1,52 @@
 <?php
 
-/* @var $this yii\web\View */
-
-$this->title = 'My Yii Application';
+use kartik\icons\Icon;
+use frontend\widgets\Node;
+use yii\helpers\HtmlPurifier;
+use yii\helpers\Markdown;
+use yii\helpers\Html;
+$this->title = Yii::$app->setting->get('siteName');
+Icon::map($this);
 ?>
-<div class="site-index">
-
-    <div class="jumbotron">
-        <h1>Congratulations!</h1>
-
-        <p class="lead">You have successfully created your Yii-powered application.</p>
-
-        <p><a class="btn btn-lg btn-success" href="http://www.yiiframework.com">Get started with Yii</a></p>
-    </div>
-
-    <div class="body-content">
-
-        <div class="row">
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/doc/">Yii Documentation &raquo;</a></p>
-            </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/forum/">Yii Forum &raquo;</a></p>
-            </div>
-            <div class="col-lg-4">
-                <h2>Heading</h2>
-
-                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et
-                    dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-                    ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                    fugiat nulla pariatur.</p>
-
-                <p><a class="btn btn-default" href="http://www.yiiframework.com/extensions/">Yii Extensions &raquo;</a></p>
-            </div>
-        </div>
-
+<div class="panel panel-default">
+    <div class="panel-body text-center mp0">
+        <?= ($headline) ? HtmlPurifier::process(Markdown::process(reset($headline), 'gfm')) : \Yii::t('app', 'site_intro') ?>
     </div>
 </div>
+
+<div class="panel panel-default list-panel">
+    <div class="panel-heading">
+        <h3 class="panel-title text-center">
+            <?= \Yii::t('app', 'Excellent Topics') ?> &nbsp;
+        </h3>
+    </div>
+
+    <div class="clearfix site-index-topic">
+        <?php if ($topics) {
+            foreach ($topics as $key => $vlaue) {
+                echo $this->render('_item', ['model' => $vlaue]);
+            }
+        } else {
+            echo \Yii::t('app', 'Dont have any data Yet');
+        } ?>
+    </div>
+
+    <div class="panel-footer text-right">
+            <span class="index_count"><?= Icon::show('user'); ?><?= \Yii::t('app', 'Online Count') ?>
+                ：<?= $statistics['online_count']; ?>
+                &nbsp;<?= Icon::show('list'); ?><?= \Yii::t('app', 'Post Count') ?>：<?= $statistics['post_count']; ?>
+                &nbsp;<?= Icon::show('share'); ?><?= \Yii::t('app', 'Comment Count') ?>
+                ：<?= $statistics['comment_count']; ?></span><?= Html::a(\Yii::t('app', 'More Excellent Topics'), ['topic/default/index', 'sort' => 'excellent']) ?>
+    </div>
+</div>
+
+<div class="panel panel-default list-panel">
+    <div class="panel-heading">
+        <h3 class="panel-title text-center">社区会员榜</h3>
+    </div>
+
+    <div class="panel-body row">
+        <?= $this->render('/partials/users', ['model' => $users]); ?>
+    </div>
+</div>
+<?php echo Node::widget()?>

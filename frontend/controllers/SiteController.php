@@ -1,11 +1,18 @@
 <?php
 namespace frontend\controllers;
 
+use common\helpers\Arr;
+use common\models\Post;
+use common\models\PostComment;
+use common\models\PostTag;
+use common\models\RightLink;
 use common\models\User;
+use common\service\UserService;
+use frontend\modules\topic\models\Topic;
 use Yii;
+use yii\base\Exception;
 use yii\base\InvalidParamException;
 use yii\web\BadRequestHttpException;
-use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use common\models\LoginForm;
@@ -13,6 +20,10 @@ use frontend\models\PasswordResetRequestForm;
 use frontend\models\ResetPasswordForm;
 use frontend\models\SignupForm;
 use frontend\models\ContactForm;
+use dosamigos\qrcode\QrCode;
+use yii\web\Response;
+use common\components\Controller;
+use yii\web\Session;
 
 /**
  * Site controller
@@ -20,10 +31,6 @@ use frontend\models\ContactForm;
 class SiteController extends Controller
 {
 
-    public function actionUser()
-    {
-        return print_r(new User());
-    }
 
     /**
      * @inheritdoc
@@ -79,7 +86,16 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        throw new Exception();
+        $topics=Post::find()->where(['type'=>Topic::TYPE,'status'=>Post::STATUS_EXCELLENT])->limit(20)->orderBy(['created_at'=>SORT_DESC])->all();
+        $users = UserService::findActiveUser(20);
+        $headline=Arr::getColumn(RightLink::find()->where(['type'=>RightLink::RIGHT_LINK_TYPE_HEADLINE])->all(),'comment');
+        $statistics=[];
+        $statistics['post_count']=Post::find()->count();
+        $statistics['comment_count']=PostComment::find()->count();
+        $statistics['online_count']=\common\models\Session::find()->where(['>=','expire',time()])->count();
+        return $this->render('index',
+            ['topics'=>$topics,'users'=>$users,'statistics'=>$statistics,'headline'=>Arr::ArrayRandomAssoc($headline)]);
     }
 
     /**
@@ -92,7 +108,6 @@ class SiteController extends Controller
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
         }
-
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             return $this->goBack();
@@ -156,6 +171,7 @@ class SiteController extends Controller
     public function actionSignup()
     {
         $model = new SignupForm();
+        $this->isAjaxValidation($model);
         if ($model->load(Yii::$app->request->post())) {
             if ($user = $model->signup()) {
                 if (Yii::$app->getUser()->login($user)) {
@@ -163,7 +179,6 @@ class SiteController extends Controller
                 }
             }
         }
-
         return $this->render('signup', [
             'model' => $model,
         ]);
@@ -216,5 +231,44 @@ class SiteController extends Controller
         return $this->render('resetPassword', [
             'model' => $model,
         ]);
+    }
+
+    /**
+     * 更具指定的URL生成二维码
+     * @param $url
+     */
+    public function actionQrcode($url='')
+    {
+        return QrCode::png($url);
+    }
+
+    private function isAjaxValidation($model)
+    {
+        if (Yii::$app->request->isAjax && $model->load(Yii::$app->request->post())) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            echo json_encode(\yii\widgets\ActiveForm::validate($model));
+            Yii::$app->end();
+        }
+    }
+
+    /**
+     * 标签云
+     * @return string
+     */
+    public function actionTags()
+    {
+        $tags=PostTag::find()->orderBy(['created_at'=>SORT_DESC])->all();
+        return $this->render('tags',['tags'=>$tags]);
+    }
+
+    /**
+     * 用户
+     * @return string
+     */
+    public function actionUsers()
+    {
+        $model=UserService::findActiveUser(100);
+        $count=User::find()->where(['status'=>User::STATUS_ACTIVE])->count();
+        return $this->render('users',['model'=> $model,'count'=>$count]);
     }
 }

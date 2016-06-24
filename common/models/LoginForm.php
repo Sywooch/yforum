@@ -3,6 +3,8 @@ namespace common\models;
 
 use Yii;
 use yii\base\Model;
+use yii\web\Session;
+use common\models\User;
 
 /**
  * Login form
@@ -12,9 +14,7 @@ class LoginForm extends Model
     public $username;
     public $password;
     public $rememberMe = true;
-
-    private $_user;
-
+    private $_user = false;
 
     /**
      * @inheritdoc
@@ -43,7 +43,7 @@ class LoginForm extends Model
         if (!$this->hasErrors()) {
             $user = $this->getUser();
             if (!$user || !$user->validatePassword($this->password)) {
-                $this->addError($attribute, 'Incorrect username or password.');
+                $this->addError($attribute, Yii::t('common', 'Incorrect username or password.'));
             }
         }
     }
@@ -62,17 +62,31 @@ class LoginForm extends Model
         }
     }
 
-    /**
-     * Finds user by [[username]]
-     *
-     * @return User|null
+    /** 获得用户
+     * @return bool|null|static
      */
-    protected function getUser()
+    public function getUser()
     {
-        if ($this->_user === null) {
-            $this->_user = User::findByUsername($this->username);
+        if ($this->_user === false) {
+            if (strpos($this->username, "@"))
+                $this->_user = User::findByEmail($this->username); //email 登录
+            else
+                $this->_user = User::findByUsername($this->username);
         }
-
         return $this->_user;
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'username' => Yii::t('common', 'Username'),
+            'password' => Yii::t('common', 'Password'),
+            'rememberMe' => Yii::t('common', 'Remember Me'),
+        ];
+    }
+
 }

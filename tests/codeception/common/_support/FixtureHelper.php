@@ -8,7 +8,7 @@ use yii\test\FixtureTrait;
 use yii\test\InitDbFixture;
 
 /**
- * This helper is used to populate the database with needed fixtures before any tests are run.
+ * This helpers is used to populate the database with needed fixtures before any tests are run.
  * In this example, the database is populated with the demo login user, which is used in acceptance
  * and functional tests.  All fixtures will be loaded before the suite is started and unloaded after it
  * completes.

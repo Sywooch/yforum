@@ -4,13 +4,19 @@
 /* @var $content string */
 
 use yii\helpers\Html;
-use yii\bootstrap\Nav;
-use yii\bootstrap\NavBar;
 use yii\widgets\Breadcrumbs;
 use frontend\assets\AppAsset;
 use common\widgets\Alert;
+use frontend\assets\BrowerAsset;
+use \frontend\assets\EditAsset;
+use frontend\assets\EmojifyAsset;
+use yii\helpers\Url;
 
 AppAsset::register($this);
+BrowerAsset::register($this);
+EditAsset::register($this);
+$emojify=EmojifyAsset::register($this);
+
 ?>
 <?php $this->beginPage() ?>
 <!DOCTYPE html>
@@ -27,38 +33,8 @@ AppAsset::register($this);
 
 <div class="wrap">
     <?php
-    NavBar::begin([
-        'brandLabel' => 'My Company',
-        'brandUrl' => Yii::$app->homeUrl,
-        'options' => [
-            'class' => 'navbar-inverse navbar-fixed-top',
-        ],
-    ]);
-    $menuItems = [
-        ['label' => 'Home', 'url' => ['/site/index']],
-        ['label' => 'About', 'url' => ['/site/about']],
-        ['label' => 'Contact', 'url' => ['/site/contact']],
-    ];
-    if (Yii::$app->user->isGuest) {
-        $menuItems[] = ['label' => 'Signup', 'url' => ['/site/signup']];
-        $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
-    } else {
-        $menuItems[] = '<li>'
-            . Html::beginForm(['/site/logout'], 'post')
-            . Html::submitButton(
-                'Logout (' . Yii::$app->user->identity->username . ')',
-                ['class' => 'btn btn-link']
-            )
-            . Html::endForm()
-            . '</li>';
-    }
-    echo Nav::widget([
-        'options' => ['class' => 'navbar-nav navbar-right'],
-        'items' => $menuItems,
-    ]);
-    NavBar::end();
+        echo \frontend\widgets\Nav::widget();
     ?>
-
     <div class="container">
         <?= Breadcrumbs::widget([
             'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
@@ -70,12 +46,35 @@ AppAsset::register($this);
 
 <footer class="footer">
     <div class="container">
-        <p class="pull-left">&copy; My Company <?= date('Y') ?></p>
-
-        <p class="pull-right"><?= Yii::powered() ?></p>
+        <div class="row">
+            <p style="text-align: center"> Copyright © 2016yforum.pub powerby <a href="http://www.yiiframework.com/">Yii Framework</a> </p>
+        </div>
     </div>
 </footer>
 
+<div class="btn-group-vertical" id="floatButton">
+    <button type="button" class="btn btn-default" id="goTop" title="去顶部"><span
+            class="glyphicon glyphicon-arrow-up"></span></button>
+    <button type="button" class="btn btn-default" id="refresh" title="刷新"><span
+            class="glyphicon glyphicon-repeat"></span></button>
+    <button type="button" class="btn btn-default" id="pageQrcode" title="本页二维码"><span
+            class="glyphicon glyphicon-qrcode"></span>
+        <img class="qrcode" width="130" height="130"
+             src="<?= Url::to(['/site/qrcode', 'url' => Yii::$app->request->absoluteUrl]) ?>"/>
+    </button>
+    <button type="button" class="btn btn-default" id="goBottom" title="去底部"><span
+            class="glyphicon glyphicon-arrow-down"></span></button>
+</div>
+
+<div style="display:none">
+        <?= \Yii::$app->setting->get('siteAnalytics'); ?>
+</div>
+<?php
+$this->registerJs(
+    'Config = {emojiBaseUrl: "' . $emojify->baseUrl . '"};',
+    \yii\web\View::POS_HEAD
+);
+?>
 <?php $this->endBody() ?>
 </body>
 </html>
